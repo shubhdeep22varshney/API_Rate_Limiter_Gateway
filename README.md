@@ -1,110 +1,183 @@
-# API Rate Limiter + Gateway Backend Starter
+# 🚀 API Rate Limiter + Gateway Backend
 
-This starter project gives you a clean base for a resume-ready **API Gateway + Rate Limiter** backend.
+## 📌 Overview
 
-## Project structure
+This project is a **backend API Gateway** built using **Spring Boot** and **Spring Cloud Gateway**.
+It routes incoming client requests to backend services and enforces **rate limiting using Redis** to prevent API abuse.
 
-- `api-gateway-service` -> Spring Cloud Gateway app
-- `demo-backend-service` -> small backend service to test routing
-- `docker-compose.yml` -> runs Redis locally
+---
 
-## What this project already does
+## ⚙️ Features
 
-- routes `/demo/**` from gateway to the backend service
-- strips `/demo` before forwarding the request
-- applies Redis-backed rate limiting at the gateway level
-- returns **429 Too Many Requests** when the request limit is exceeded
+* 🔁 API routing using **Spring Cloud Gateway**
+* 🚦 Redis-based **rate limiting (token bucket algorithm)**
+* 👤 **Client-based throttling** using custom `KeyResolver` (`client-id` header)
+* ❌ Automatic **HTTP 429 (Too Many Requests)** for exceeded limits
+* 📊 **Actuator endpoints** for monitoring and route inspection
+* 📝 **Request logging filter** for debugging and tracking
+* 🐳 Redis setup using **Docker**
 
-## Current flow
+---
 
-Client -> `http://localhost:8080/demo/hello`
+## 🧰 Tech Stack
 
-Gateway -> checks rate limit using Redis
+* Java 21
+* Spring Boot
+* Spring Cloud Gateway
+* Redis
+* Maven
+* Docker
+* IntelliJ IDEA
 
-Gateway -> forwards to `http://localhost:8081/hello`
+---
 
-Backend -> returns JSON response
+## 📁 Project Structure
 
-## IntelliJ + Windows setup
+```
+api-rate-limiter-gateway-starter/
+│
+├── api-gateway-service/        # API Gateway (rate limiting + routing)
+├── demo-backend-service/       # Sample backend service
+├── docker-compose.yml          # Redis container setup
+```
 
-### 1. Extract the ZIP
-Extract this ZIP anywhere, for example:
+---
 
-`C:\Users\YourName\Desktop\api-rate-limiter-gateway-starter`
+## ▶️ How to Run
 
-### 2. Open in IntelliJ IDEA
-- Open IntelliJ IDEA
-- Click **Open**
-- Select the extracted folder
-- Wait for Maven import to finish
-
-### 3. Make sure you have
-- JDK 21 configured in IntelliJ
-- Docker Desktop running
-- Internet connected for first Maven dependency download
-
-## How to run
-
-### Start Redis
-Open terminal in the project root and run:
+### 1️⃣ Start Redis (Docker)
 
 ```bash
 docker compose up -d
 ```
 
-### Run demo backend service
-Open the class:
+### 2️⃣ Run Backend Service
 
-`demo-backend-service/src/main/java/com/example/demobackend/DemoBackendApplication.java`
+Run in IntelliJ:
 
-Run `DemoBackendApplication`
-
-### Run gateway service
-Open the class:
-
-`api-gateway-service/src/main/java/com/example/apigateway/ApiGatewayApplication.java`
-
-Run `ApiGatewayApplication`
-
-## Test URLs
-
-### Direct backend
-```http
-GET http://localhost:8081/hello
+```
+DemoBackendApplication
 ```
 
-### Through gateway
-```http
-GET http://localhost:8080/demo/hello
+### 3️⃣ Run API Gateway
+
+Run in IntelliJ:
+
+```
+ApiGatewayApplication
 ```
 
-### Another backend endpoint through gateway
-```http
-GET http://localhost:8080/demo/health-check
+---
+
+## 🌐 API Endpoints
+
+### Backend (Direct)
+
+```
+http://localhost:8081/hello
 ```
 
-## Rate limit behavior
+### Gateway (via routing)
 
-Current config:
-- `replenishRate: 3`
-- `burstCapacity: 5`
-- `requestedTokens: 1`
+```
+http://localhost:8082/demo/hello
+```
 
-This means the gateway allows a short burst and then starts returning **429** if too many requests arrive quickly.
+---
 
-## Easy Postman test
-Send `GET http://localhost:8080/demo/hello` many times quickly.
+## 🚦 Rate Limiting
 
-You should first get `200 OK` and then some `429 Too Many Requests` responses.
+* Implemented using **Spring Cloud Gateway + Redis**
+* Token Bucket Configuration:
 
-## Next build steps
+    * `replenishRate`: 1 request/sec
+    * `burstCapacity`: 2 requests
 
-We will implement these one by one later:
-1. custom error body for 429
-2. per-user/API-key rate limiting
-3. JWT auth integration
-4. route config cleanup
-5. logging and monitoring
-6. Dockerfiles
-7. README polishing
-8. resume bullet points
+### 👤 Client-based Rate Limiting
+
+Use header:
+
+```
+client-id: user1
+```
+
+Each client gets a **separate rate limit bucket**.
+
+---
+
+## 🧪 Testing
+
+### Browser
+
+```
+http://localhost:8082/demo/hello
+```
+
+### Postman
+
+Add header:
+
+```
+client-id: user1
+```
+
+---
+
+## 📊 Actuator Monitoring
+
+### Health Check
+
+```
+http://localhost:8082/actuator/health
+```
+
+### Gateway Routes
+
+```
+http://localhost:8082/actuator/gateway/routes
+```
+
+---
+
+## 📝 Logging
+
+The gateway logs:
+
+* request method
+* request path
+* client-id
+* response status
+
+Example:
+
+```
+Incoming request -> method: GET, path: /demo/hello, client-id: user1
+Outgoing response -> status: 200, path: /demo/hello, client-id: user1
+```
+
+---
+
+## 🎯 Key Learnings
+
+* API Gateway architecture
+* Redis-based rate limiting
+* Request filtering in Spring Cloud Gateway
+* Client-aware throttling using headers
+* Monitoring using Actuator
+
+---
+
+## 🔮 Future Improvements
+
+* JWT Authentication
+* Role-based access control
+* Multiple backend services
+* API usage analytics
+* Distributed tracing (Zipkin)
+
+---
+
+## 👨‍💻 Author
+
+**Shubhdeep Varshney**
+Email -shubhdeepvarshney02@gmail.com

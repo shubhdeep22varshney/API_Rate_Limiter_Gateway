@@ -12,13 +12,6 @@ spring:
     gateway:
       server:
         webflux:
-          default-filters:
-            - name: RequestRateLimiter
-              args:
-                key-resolver: "#{@ipAddressKeyResolver}"
-                redis-rate-limiter.replenishRate: 1
-                redis-rate-limiter.burstCapacity: 2
-                redis-rate-limiter.requestedTokens: 1
           routes:
             - id: demo-backend-route
               uri: http://localhost:8081
@@ -26,8 +19,17 @@ spring:
                 - Path=/demo/**
               filters:
                 - StripPrefix=1
+                - name: RequestRateLimiter
+                  args:
+                    key-resolver: "#{@userKeyResolver}"
+                    redis-rate-limiter.replenishRate: 1
+                    redis-rate-limiter.burstCapacity: 2
+                    redis-rate-limiter.requestedTokens: 1
 
 management:
+  endpoint:
+    gateway:
+      access: read-only
   endpoints:
     web:
       exposure:
