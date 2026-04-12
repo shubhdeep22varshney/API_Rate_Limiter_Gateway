@@ -1,0 +1,169 @@
+{
+  "info": {
+    "_postman_id": "2808fd06-56ae-4e9d-84ec-c8aca534f1ce",
+    "name": "API rate limiter gateway",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "44614154"
+  },
+  "item": [
+    {
+      "name": "generate token normal user",
+      "request": {
+        "auth": {
+          "type": "noauth"
+        },
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "urlencoded",
+          "urlencoded": [
+            {
+              "key": "grant_type",
+              "value": "password",
+              "type": "text",
+              "uuid": "2ca525dc-34b1-4b6d-9cd5-c53be002c2b2"
+            },
+            {
+              "key": "client_id",
+              "value": "api-gateway-client",
+              "type": "text",
+              "uuid": "69b284b0-4265-49d2-b65d-2baae7dfdc78"
+            },
+            {
+              "key": "client_secret",
+              "value": "nMDbI7VEl8L3iGIVoiVtWf16ohCSGjIc",
+              "type": "text",
+              "uuid": "51e9876e-f362-4c02-88f7-329ae2e4cab4"
+            },
+            {
+              "key": "username",
+              "value": "testuser02",
+              "type": "text",
+              "uuid": "d6d39847-4248-4b79-8f76-f49d92465e34"
+            },
+            {
+              "key": "password",
+              "value": "test123",
+              "type": "text",
+              "uuid": "ad3dcfb2-c42a-4688-9ad9-72ecba1dbab2"
+            }
+          ]
+        },
+        "url": {
+          "raw": "http://localhost:8180/realms/api-gateway-realm/protocol/openid-connect/token",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8180",
+          "path": [
+            "realms",
+            "api-gateway-realm",
+            "protocol",
+            "openid-connect",
+            "token"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Test gateway",
+      "request": {
+        "method": "GET",
+        "header": []
+      },
+      "response": []
+    },
+    {
+      "name": "health-check",
+      "request": {
+        "method": "GET",
+        "header": []
+      },
+      "response": []
+    },
+    {
+      "name": "slow",
+      "request": {
+        "method": "GET",
+        "header": []
+      },
+      "response": []
+    },
+    {
+      "name": "admin-only using user token",
+      "request": {
+        "method": "GET",
+        "header": []
+      },
+      "response": []
+    },
+    {
+      "name": "token generate admin",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "urlencoded",
+          "urlencoded": [
+            {
+              "key": "grant_type",
+              "value": "password",
+              "type": "text",
+              "uuid": "fdeb985a-8f25-4a1d-829e-7e83091cc7a7"
+            },
+            {
+              "key": "client_id",
+              "value": "api-gateway-client",
+              "type": "text",
+              "uuid": "1711438e-0c49-46ec-84c0-2b8f0d68beda"
+            },
+            {
+              "key": "client_secret",
+              "value": "nMDbI7VEl8L3iGIVoiVtWf16ohCSGjIc",
+              "type": "text",
+              "uuid": "490dee3d-debd-48c9-86e5-113287585d46"
+            },
+            {
+              "key": "username",
+              "value": "adminuser",
+              "type": "text",
+              "uuid": "75a4cd20-6670-4607-b504-57abaf6f1e5a"
+            },
+            {
+              "key": "password",
+              "value": "admin123",
+              "type": "text",
+              "uuid": "55ec337c-89ba-4056-8fa9-29a79f5607d4"
+            }
+          ]
+        },
+        "url": {
+          "raw": "http://localhost:8180/realms/api-gateway-realm/protocol/openid-connect/token",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8180",
+          "path": [
+            "realms",
+            "api-gateway-realm",
+            "protocol",
+            "openid-connect",
+            "token"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "admin-only using admin token",
+      "request": {
+        "method": "GET",
+        "header": []
+      },
+      "response": []
+    }
+  ]
+}

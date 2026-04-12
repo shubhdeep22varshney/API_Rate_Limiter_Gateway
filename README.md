@@ -1,21 +1,36 @@
-# 🚀 API Rate Limiter + Gateway Backend
+# 🚀 API Rate Limiter + Gateway Backend (JWT + Keycloak)
 
 ## 📌 Overview
 
-This project is a **backend API Gateway** built using **Spring Boot** and **Spring Cloud Gateway**.
-It routes incoming client requests to backend services and enforces **rate limiting using Redis** to prevent API abuse.
+This project is a **production-style API Gateway backend** built using **Spring Boot + Spring Cloud Gateway**.
+It routes client requests, enforces **rate limiting using Redis**, and secures APIs using **JWT authentication via Keycloak**.
+
+---
+
+## 🏗️ Architecture
+
+```text
+Client → API Gateway → Backend Service
+           ↓
+     JWT Validation
+           ↓
+        Keycloak
+           ↓
+         Redis (Rate Limiting)
+```
 
 ---
 
 ## ⚙️ Features
 
-* 🔁 API routing using **Spring Cloud Gateway**
-* 🚦 Redis-based **rate limiting (token bucket algorithm)**
-* 👤 **Client-based throttling** using custom `KeyResolver` (`client-id` header)
-* ❌ Automatic **HTTP 429 (Too Many Requests)** for exceeded limits
-* 📊 **Actuator endpoints** for monitoring and route inspection
-* 📝 **Request logging filter** for debugging and tracking
-* 🐳 Redis setup using **Docker**
+* 🔁 API routing using Spring Cloud Gateway
+* 🚦 Redis-based rate limiting (Token Bucket Algorithm)
+* 👤 Client-based throttling using `client-id` header
+* 🔐 JWT Authentication using Keycloak
+* 🛡️ Role-based access control (USER / ADMIN)
+* 📊 Actuator endpoints for monitoring
+* 📝 Request logging filter
+* 🐳 Docker-based Redis & Keycloak setup
 
 ---
 
@@ -24,114 +39,170 @@ It routes incoming client requests to backend services and enforces **rate limit
 * Java 21
 * Spring Boot
 * Spring Cloud Gateway
+* Spring Security (WebFlux)
+* Keycloak (Auth Server)
 * Redis
-* Maven
 * Docker
+* Maven
 * IntelliJ IDEA
 
 ---
 
 ## 📁 Project Structure
 
-```
-api-rate-limiter-gateway-starter/
+```text
+api-rate-limiter-gateway/
 │
-├── api-gateway-service/        # API Gateway (rate limiting + routing)
-├── demo-backend-service/       # Sample backend service
-├── docker-compose.yml          # Redis container setup
+├── api-gateway-service/        # Gateway (JWT + Rate Limiting)
+├── demo-backend-service/       # Sample backend
+├── docker-compose.yml          # Redis
+├── postman_collection.json     # API testing
 ```
 
 ---
 
 ## ▶️ How to Run
 
-### 1️⃣ Start Redis (Docker)
+### 1️⃣ Start Redis
 
 ```bash
 docker compose up -d
 ```
 
-### 2️⃣ Run Backend Service
+---
 
-Run in IntelliJ:
+### 2️⃣ Start Keycloak
+
+```bash
+docker run -d --name keycloak -p 8180:8080 \
+-e KEYCLOAK_ADMIN=admin \
+-e KEYCLOAK_ADMIN_PASSWORD=admin \
+quay.io/keycloak/keycloak:latest start-dev
+```
+
+Open:
 
 ```
-DemoBackendApplication
+http://localhost:8180
 ```
 
-### 3️⃣ Run API Gateway
+---
 
-Run in IntelliJ:
+### 3️⃣ Setup Keycloak
 
+* Create Realm → `api-gateway-realm`
+* Create Client → `api-gateway-client`
+* Enable:
+
+  * Client Authentication = ON
+  * Direct Access Grants = ON
+* Copy **Client Secret**
+* Create User:
+
+  * username: `testuser`
+  * password: `test123`
+* Create Roles:
+
+  * USER
+  * ADMIN
+
+---
+
+### 4️⃣ Run Services
+
+* Run `DemoBackendApplication`
+* Run `ApiGatewayApplication`
+
+---
+
+## 🔐 JWT Authentication
+
+### Get Token
+
+POST:
+
+```text
+http://localhost:8180/realms/api-gateway-realm/protocol/openid-connect/token
 ```
-ApiGatewayApplication
+
+Body:
+
+```text
+grant_type=password
+client_id=api-gateway-client
+client_secret=<CLIENT_SECRET>
+username=testuser
+password=test123
+```
+
+---
+
+### Use Token
+
+```text
+Authorization: Bearer <ACCESS_TOKEN>
 ```
 
 ---
 
 ## 🌐 API Endpoints
 
-### Backend (Direct)
+### Public (Health)
 
 ```
-http://localhost:8081/hello
+GET /actuator/health
 ```
 
-### Gateway (via routing)
+---
+
+### User API
 
 ```
-http://localhost:8082/demo/hello
+GET /demo/hello
+```
+
+---
+
+### Admin API
+
+```
+GET /demo/admin-only
 ```
 
 ---
 
 ## 🚦 Rate Limiting
 
-* Implemented using **Spring Cloud Gateway + Redis**
-* Token Bucket Configuration:
+* Redis-based
+* Config:
 
-    * `replenishRate`: 1 request/sec
-    * `burstCapacity`: 2 requests
+  * replenishRate: 1 request/sec
+  * burstCapacity: 2
 
-### 👤 Client-based Rate Limiting
+Example:
 
-Use header:
-
-```
-client-id: user1
-```
-
-Each client gets a **separate rate limit bucket**.
+* 2 requests → allowed
+* 3rd → **429 Too Many Requests**
 
 ---
 
-## 🧪 Testing
+## 👤 Role-Based Access
 
-### Browser
-
-```
-http://localhost:8082/demo/hello
-```
-
-### Postman
-
-Add header:
-
-```
-client-id: user1
-```
+Endpoint         | Access      |
+| /demo/hello     | USER, ADMIN |
+| /demo/admin-only | ADMIN only  |
 
 ---
 
-## 📊 Actuator Monitoring
+## 📊 Monitoring
 
-### Health Check
+### Health
 
 ```
 http://localhost:8082/actuator/health
 ```
 
-### Gateway Routes
+### Routes
 
 ```
 http://localhost:8082/actuator/gateway/routes
@@ -141,18 +212,23 @@ http://localhost:8082/actuator/gateway/routes
 
 ## 📝 Logging
 
-The gateway logs:
-
-* request method
-* request path
-* client-id
-* response status
-
 Example:
 
 ```
-Incoming request -> method: GET, path: /demo/hello, client-id: user1
-Outgoing response -> status: 200, path: /demo/hello, client-id: user1
+Incoming request → method: GET, path: /demo/hello, client-id: user1
+Outgoing response → status: 200
+```
+
+---
+
+## 📬 Postman
+
+* Import `postman_collection.json`
+* Set:
+
+```text
+base_url = http://localhost:8082
+token = Bearer <JWT>
 ```
 
 ---
@@ -160,24 +236,23 @@ Outgoing response -> status: 200, path: /demo/hello, client-id: user1
 ## 🎯 Key Learnings
 
 * API Gateway architecture
-* Redis-based rate limiting
-* Request filtering in Spring Cloud Gateway
-* Client-aware throttling using headers
-* Monitoring using Actuator
+* JWT authentication (OAuth2 Resource Server)
+* Redis rate limiting
+* Role-based authorization
+* Microservices security design
 
 ---
 
 ## 🔮 Future Improvements
 
-* JWT Authentication
-* Role-based access control
-* Multiple backend services
-* API usage analytics
+* OAuth2 login flow
+* API analytics dashboard
 * Distributed tracing (Zipkin)
+* Circuit breaker (Resilience4j)
 
 ---
 
 ## 👨‍💻 Author
 
 **Shubhdeep Varshney**
-Email -shubhdeepvarshney02@gmail.com
+Email - shubhdeepvarshney02@gmail.com
