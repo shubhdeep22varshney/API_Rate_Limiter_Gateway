@@ -33,4 +33,10 @@ public class TestController {
         Thread.sleep(2000);
         return ResponseEntity.ok("Slow API response");
     }
+    @GetMapping("admin-only")
+    public ResponseEntity<Map<String, Object>> adminOnly() {
+        return ResponseEntity.ok(Map.of(
+                "message", "Hello Admin, you are allowed to access this endpoint",
+                "role", "ADMIN"));
+    }
 }
